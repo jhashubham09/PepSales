@@ -10,9 +10,11 @@ app.use(express.json()); // Parse JSON request body
 // Connect to MongoDB
 connectDB();
 
-// Function to start RabbitMQ queue
+// Function to start RabbitMQ queue with Retry Logic
 const startQueue = async () => {
     try {
+        console.log("🔧 RabbitMQ URL from ENV:", process.env.RABBITMQ_URL);
+
         if (!process.env.RABBITMQ_URL) {
             throw new Error('❌ RABBITMQ_URL not set in environment variables');
         }
@@ -23,7 +25,8 @@ const startQueue = async () => {
         console.log('✅ RabbitMQ connected');
     } catch (err) {
         console.error('❌ RabbitMQ connection error:', err.message);
-        process.exit(1);
+        console.log('Retrying in 5 seconds...');
+        setTimeout(startQueue, 5000); // Retry after 5 seconds
     }
 };
 
